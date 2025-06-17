@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'dashboard:home' %}" class="text-gray-700 hover:text-indigo-600">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-gray-500">{{ entreprise.nom }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Informations principales -->
+            <div class="lg:col-span-2">
+                <!-- En-tête entreprise -->
+                <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                    <div class="flex items-start space-x-6">
+                        {% if entreprise.logo_url %}
+                        <div class="flex-shrink-0">
+                            <img src="{{ entreprise.logo_url }}" 
+                                 alt="{{ entreprise.nom }}"
+                                 class="w-24 h-24 object-contain rounded-lg border border-gray-200">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ entreprise.nom }}</h1>
+                            {% if entreprise.tagline %}
+                            <p class="text-lg text-gray-600 mb-4">{{ entreprise.tagline }}</p>
+                            {% endif %}
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                {% if entreprise.secteur %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-industry text-gray-400 mr-2"></i>
+                                    <span>{{ entreprise.secteur }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if entreprise.taille %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-gray-400 mr-2"></i>
+                                    <span>{{ entreprise.taille }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if entreprise.site_web %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-globe text-gray-400 mr-2"></i>
+                                    <a href="{{ entreprise.site_web }}" 
+                                       target="_blank" 
+                                       class="text-indigo-600 hover:text-indigo-800">
+                                        Site web
+                                    </a>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="flex items-center">
+                                    <i class="fas fa-briefcase text-gray-400 mr-2"></i>
+                                    <span>{{ entreprise.offres_count }} offre{{ entreprise.offres_count|pluralize }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% comment %}
+                    Note: Le champ description n'existe pas dans votre modèle Entreprise
+                    Ajoutez-le si nécessaire : description = models.TextField(blank=True, null=True)
+                    {% endcomment %}
+                    {% if entreprise.description %}
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">À propos</h3>
+                        <div class="prose max-w-none text-gray-700">
+                            {{ entreprise.description|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Offres d'emploi -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            <i class="fas fa-briefcase text-indigo-600 mr-3"></i>
+                            Offres d'emploi ({{ page_obj.paginator.count }})
+                        </h2>
+                        {% if page_obj.paginator.count > 0 %}
+                        <div class="flex space-x-2">
+                            <select id="sortOffres" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="recent">Plus récentes</option>
+                                <option value="anciennes">Plus anciennes</option>
+                                <option value="titre">Par titre</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-6">
+                        {% for offre in page_obj %}
+                        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-3">
+                                        <h3 class="text-xl font-semibold text-gray-900 mr-3">
+                                            <a href="{% url 'dashboard:offre_detail' offre.id %}" 
+                                               class="hover:text-indigo-600 transition-colors">
+                                                {{ offre.titre_poste }}
+                                            </a>
+                                        </h3>
+                                        {% if offre.is_recent %}
+                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                                            <i class="fas fa-star mr-1"></i>Nouveau
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flex items-center text-gray-600 mb-3 space-x-4">
+                                        {% if offre.region %}
+                                        <span>
+                                            <i class="fas fa-map-marker-alt mr-1"></i>{{ offre.region.nom }}
+                                        </span>
+                                        {% endif %}
+                                        <span>
+                                            <i class="fas fa-calendar-alt mr-1"></i>{{ offre.date_publication|date:"d M Y" }}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-eye mr-1"></i>{{ offre.vues }} vue{{ offre.vues|pluralize }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 mb-4">
+                                        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                                            {{ offre.get_type_contrat_display }}
+                                        </span>
+                                        {% if offre.niveau_experience %}
+                                        <span class="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
+                                            {{ offre.get_niveau_experience_display }}
+                                        </span>
+                                        {% endif %}
+                                        {% if offre.secteur_activite %}
+                                        <span class="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">
+                                            {{ offre.secteur_activite }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if offre.description %}
+                                    <p class="text-gray-700 mb-4">{{ offre.description|truncatechars:150 }}</p>
+                                    {% endif %}
+
+                                    {% if offre.salaire_min or offre.salaire_max %}
+                                    <div class="flex items-center text-green-600 font-semibold mb-2">
+                                        <i class="fas fa-money-bill mr-2"></i>{{ offre.salaire_range }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex flex-col items-end space-y-2 ml-6">
+                                    <a href="{{ offre.url_offre }}" 
+                                       target="_blank"
+                                       class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-external-link-alt mr-2"></i>Voir l'offre
+                                    </a>
+                                    <a href="{% url 'dashboard:offre_detail' offre.id %}" 
+                                       class="text-indigo-600 hover:text-indigo-800 text-sm">
+                                        Détails complets
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-briefcase text-6xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600 mb-2">Aucune offre disponible</h3>
+                            <p class="text-gray-500">Cette entreprise n'a pas d'offres d'emploi actives pour le moment.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <div class="mt-8 flex justify-center">
+                        <nav class="flex items-center space-x-2">
+                            {% if page_obj.has_previous %}
+                            <a href="?page=1" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                            {% endif %}
+
+                            <span class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg">
+                                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                            </span>
+
+                            {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <!-- Statistiques entreprise -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">
+                        <i class="fas fa-chart-bar text-indigo-600 mr-2"></i>Statistiques
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Offres actives</span>
+                            <span class="font-bold text-gray-900">{{ entreprise.offres_count }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Dernière offre</span>
+                            <span class="font-bold text-gray-900">
+                                {% if entreprise.derniere_offre %}
+                                    {{ entreprise.derniere_offre|date:"d M Y" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Vues totales</span>
+                            <span class="font-bold text-gray-900">{{ entreprise.total_vues|default:0 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secteurs d'activité -->
+                {% if entreprise.secteurs_offres %}
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">
+                        <i class="fas fa-industry text-teal-600 mr-2"></i>Secteurs de recrutement
+                    </h3>
+                    <div class="space-y-2">
+                        {% for secteur in entreprise.secteurs_offres %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">{{ secteur.nom }}</span>
+                            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">
+                                {{ secteur.count }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Types de contrats -->
+                {% if entreprise.types_contrats %}
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">
+                        <i class="fas fa-file-contract text-blue-600 mr-2"></i>Types de contrats
+                    </h3>
+                    <div class="space-y-2">
+                        {% for contrat in entreprise.types_contrats %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">{{ contrat.nom }}</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                {{ contrat.count }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+                    <h3 class="text-lg font-bold mb-4">
+                        <i class="fas fa-rocket mr-2"></i>Actions
+                    </h3>
+                    <div class="space-y-3">
+                        <button onclick="window.location.href='{% url 'dashboard:offres_list' %}?entreprise={{ entreprise.nom }}'" 
+                                class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-filter mr-2"></i>Filtrer par cette entreprise
+                        </button>
+                        <button onclick="navigator.share({title: '{{ entreprise.nom }}', url: window.location.href})" 
+                                class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-share-alt mr-2"></i>Partager
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortSelect = document.getElementById('sortOffres');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const sortBy = this.value;
+            const url = new URL(window.location);
+            url.searchParams.set('sort', sortBy);
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
+{% endblock %}

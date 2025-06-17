@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title|default:"Dashboard Emploi Sénégal" }}{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .glassmorphism { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="h-full">
+    <div class="min-h-full">
+        <!-- Navigation -->
+        <nav class="gradient-bg shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <h1 class="text-white text-xl font-bold">
+                                <i class="fas fa-briefcase mr-2"></i>
+                                Emploi Sénégal
+                            </h1>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="ml-10 flex items-baseline space-x-4">
+                                <a href="{% url 'dashboard:home' %}" 
+                                   class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-md text-sm font-medium transition-all">
+                                    <i class="fas fa-home mr-2"></i>Dashboard
+                                </a>
+                                <a href="{% url 'dashboard:offres_list' %}" 
+                                   class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-md text-sm font-medium transition-all">
+                                    <i class="fas fa-list mr-2"></i>Offres
+                                </a>
+                                <a href="{% url 'dashboard:analytics' %}" 
+                                   class="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-md text-sm font-medium transition-all">
+                                    <i class="fas fa-chart-line mr-2"></i>Analytics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button x-data="{ open: false }" @click="open = !open" class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-md">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-briefcase mr-2"></i>
+                            Emploi Sénégal
+                        </h3>
+                        <p class="text-gray-300">Plateforme d'analyse des offres d'emploi au Sénégal. Données collectées depuis les principaux sites de recrutement.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-md font-semibold mb-4">Liens utiles</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li><a href="{% url 'dashboard:home' %}" class="hover:text-white transition-colors">Dashboard</a></li>
+                            <li><a href="{% url 'dashboard:offres_list' %}" class="hover:text-white transition-colors">Toutes les offres</a></li>
+                            <li><a href="{% url 'dashboard:analytics' %}" class="hover:text-white transition-colors">Analytics</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-md font-semibold mb-4">Statistiques</h4>
+                        <div class="space-y-2 text-gray-300">
+                            <p><i class="fas fa-database mr-2"></i>Données mises à jour quotidiennement</p>
+                            <p><i class="fas fa-clock mr-2"></i>Dernière mise à jour: {{ "now"|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                    <p>&copy; 2025 Dashboard Emploi Sénégal. Développé avec Django & Tailwind CSS.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts personnalisés -->
+    <script>
+        // Animation des cartes au scroll
+        const observerCallback = (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, {
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('.card-hover').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Fonction pour formater les nombres
+        function formatNumber(num) {
+            return new Intl.NumberFormat('fr-FR').format(num);
+        }
+
+        // Utilitaire pour les graphiques
+        const chartColors = {
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6'
+        };
+    </script>
+
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

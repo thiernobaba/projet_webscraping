@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-chart-line text-purple-600 mr-3"></i>
+                Analytics & Insights
+            </h1>
+            <p class="text-lg text-gray-600">Analyse approfondie du marché de l'emploi au Sénégal</p>
+        </div>
+
+        <!-- Evolution mensuelle -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-trending-up text-blue-600 mr-2"></i>
+                    Évolution des offres d'emploi
+                </h3>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm font-medium">12 mois</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md text-sm font-medium hover:bg-gray-100">6 mois</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md text-sm font-medium hover:bg-gray-100">3 mois</button>
+                </div>
+            </div>
+            <div class="relative h-80">
+                <canvas id="evolutionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Analytics Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Top Compétences -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-star text-yellow-600 mr-2"></i>
+                        Compétences les plus demandées
+                    </h3>
+                    <span class="text-sm text-gray-500">Top 15</span>
+                </div>
+                <div class="space-y-3">
+                    {% for competence, count in top_competences %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mr-3"></div>
+                            <span class="text-sm font-medium text-gray-700 capitalize">{{ competence }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-sm font-bold text-gray-900 mr-3">{{ count }}</span>
+                            <div class="w-16 bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full" 
+                                     style="width: {% widthratio count top_competences.0.1 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Analyse salariale -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                        Analyse salariale
+                    </h3>
+                    <span class="text-sm text-gray-500">En FCFA</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calculator text-green-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-green-600 font-medium">Salaire Moyen</p>
+                                <p class="text-lg font-bold text-green-800">
+                                    {% if salaire_stats.moyenne %}
+                                        {{ salaire_stats.moyenne|floatformat:0 }} FCFA
+                                    {% else %}
+                                        Non disponible
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-bar text-blue-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-600 font-medium">Médiane</p>
+                                <p class="text-lg font-bold text-blue-800">
+                                    {% if salaire_stats.median %}
+                                        {{ salaire_stats.median|floatformat:0 }} FCFA
+                                    {% else %}
+                                        Non disponible
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-red-50 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-arrow-down text-red-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-600 font-medium">Minimum</p>
+                                <p class="text-lg font-bold text-red-800">
+                                    {% if salaire_stats.min %}
+                                        {{ salaire_stats.min|floatformat:0 }} FCFA
+                                    {% else %}
+                                        Non disponible
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-arrow-up text-purple-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-purple-600 font-medium">Maximum</p>
+                                <p class="text-lg font-bold text-purple-800">
+                                    {% if salaire_stats.max %}
+                                        {{ salaire_stats.max|floatformat:0 }} FCFA
+                                    {% else %}
+                                        Non disponible
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Niveau d'expérience et secteurs -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Répartition par niveau d'expérience -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-graduation-cap text-indigo-600 mr-2"></i>
+                        Niveau d'expérience demandé
+                    </h3>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="experienceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Secteurs d'activité -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-industry text-teal-600 mr-2"></i>
+                        Secteurs qui recrutent le plus
+                    </h3>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="secteursChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights & Recommendations -->
+        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg p-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">
+                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                Insights & Recommandations
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Tendance du marché</h4>
+                    <p class="text-sm text-gray-600">
+                        {% if evolution_mensuelle %}
+                            Le marché de l'emploi montre une croissance constante avec une augmentation notable ces derniers mois.
+                        {% else %}
+                            Données insuffisantes pour analyser la tendance du marché.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-green-600 text-xl"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Compétences recherchées</h4>
+                    <p class="text-sm text-gray-600">
+                        {% if top_competences %}
+                            Les compétences en {{ top_competences.0.0 }} et {{ top_competences.1.0 }} sont les plus demandées actuellement.
+                        {% else %}
+                            Aucune donnée sur les compétences disponible.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-map-marker-alt text-purple-600 text-xl"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Opportunités géographiques</h4>
+                    <p class="text-sm text-gray-600">
+                        Dakar reste le principal hub d'emploi, mais d'autres régions montrent un potentiel de croissance.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique d'évolution mensuelle
+    const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
+    const evolutionData = [
+        {% for item in evolution_mensuelle %}
+        {
+            x: '{{ item.mois|date:"Y-m" }}',
+            y: {{ item.count }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    new Chart(evolutionCtx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Offres d\'emploi',
+                data: evolutionData,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        parser: 'YYYY-MM',
+                        displayFormats: {
+                            month: 'MMM YYYY'
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    // Graphique des niveaux d'expérience
+    const experienceCtx = document.getElementById('experienceChart').getContext('2d');
+    const experienceLabels = {
+        'JUNIOR': 'Junior (0-2 ans)',
+        'INTERMEDIAIRE': 'Intermédiaire (3-5 ans)',
+        'SENIOR': 'Senior (5-10 ans)',
+        'EXPERT': 'Expert (10+ ans)'
+    };
+
+    new Chart(experienceCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for item in experience_stats %}
+                '{{ item.niveau_experience }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ].map(level => experienceLabels[level] || level),
+            datasets: [{
+                data: [
+                    {% for item in experience_stats %}
+                    {{ item.count }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#10b981',
+                    '#3b82f6',
+                    '#f59e0b',
+                    '#ef4444'
+                ],
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Graphique des secteurs (sera alimenté par API)
+    loadSecteursChart();
+});
+
+async function loadSecteursChart() {
+    try {
+        const response = await fetch('{% url "dashboard:api_charts" %}?type=secteurs');
+        const data = await response.json();
+        
+        const secteursCtx = document.getElementById('secteursChart').getContext('2d');
+        
+        new Chart(secteursCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: data.data.map(item => item.secteur_activite),
+                datasets: [{
+                    data: data.data.map(item => item.count),
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors du chargement des données secteurs:', error);
+    }
+}
+</script>
+{% endblock %}

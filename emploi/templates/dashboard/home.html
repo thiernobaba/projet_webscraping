@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-6 bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-briefcase text-indigo-600 mr-3"></i>
+                Dashboard Emploi Sénégal
+            </h1>
+            <p class="text-xl text-gray-600">Explorez les opportunités d'emploi au Sénégal en temps réel</p>
+        </div>
+
+        <!-- Statistiques principales -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <!-- Total Offres -->
+            <div class="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Offres actives</p>
+                        <p class="text-3xl font-bold text-indigo-600">{{ total_offres }}</p>
+                    </div>
+                    <div class="bg-indigo-100 p-3 rounded-full">
+                        <i class="fas fa-briefcase text-indigo-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Total Entreprises -->
+            <div class="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Entreprises</p>
+                        <p class="text-3xl font-bold text-indigo-600">{{ total_entreprises }}</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-building text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Offres Récentes -->
+            <div class="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Nouvelles (7 jours)</p>
+                        <p class="text-3xl font-bold text-indigo-600">{{ offres_recentes }}</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-star text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recherche rapide -->
+        <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                <i class="fas fa-search text-indigo-600 mr-3"></i>Recherche rapide
+            </h2>
+            <form method="get" action="{% url 'dashboard:offres_list' %}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <input type="text" 
+                           name="search" 
+                           placeholder="Titre, entreprise, compétences..."
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                <div>
+                    <select name="region" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Toutes les régions</option>
+                        {% for region in regions_stats %}
+                        <option value="{{ region.region__nom }}">{{ region.region__nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" 
+                            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center">
+                        <i class="fas fa-search mr-2"></i>Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Graphiques et analyses -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- Répartition par type de contrat -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-file-contract text-blue-600 mr-2"></i>
+                    Types de contrats
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="contratsChart"></canvas>
+                </div>
+            </div>
+            <!-- Répartition par région -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
+                    Répartition par région
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="regionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top entreprises -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-12">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">
+                <i class="fas fa-building text-indigo-600 mr-2"></i>
+                Entreprises qui recrutent le plus
+            </h3>
+            <div class="space-y-4">
+                {% for entreprise in top_entreprises %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div class="flex items-center">
+                        {% if entreprise.logo_url %}
+                        <img src="{{ entreprise.logo_url }}" 
+                             alt="{{ entreprise.nom }}" 
+                             class="w-10 h-10 object-contain rounded-full mr-4">
+                        {% else %}
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-building text-indigo-600"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'dashboard:entreprise_detail' entreprise.id %}" 
+                               class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                {{ entreprise.nom }}
+                            </a>
+                            <p class="text-sm text-gray-500">{{ entreprise.nb_offres }} offre{{ entreprise.nb_offres|pluralize }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'dashboard:offres_list' %}?entreprise={{ entreprise.nom|urlencode }}" 
+                       class="text-indigo-600 hover:text-indigo-800 text-sm">
+                        Voir les offres
+                    </a>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center">Aucune entreprise trouvée.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-8 text-center text-white">
+            <h3 class="text-2xl font-bold mb-4">Prêt à trouver votre prochaine opportunité ?</h3>
+            <p class="text-lg mb-6">Explorez toutes nos offres ou utilisez notre recherche avancée pour trouver l'emploi parfait.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="{% url 'dashboard:offres_list' %}" 
+                   class="px-6 py-3 bg-white text-indigo-600 rounded-lg hover:bg-gray-100 transition">
+                    Toutes les offres
+                </a>
+                <a href="{% url 'dashboard:advanced_search' %}" 
+                   class="px-6 py-3 bg-indigo-700 text-white rounded-lg hover:bg-indigo-800 transition">
+                    Recherche avancée
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Graphique des types de contrats
+    try {
+        const contratsResponse = await fetch('{% url "dashboard:api_charts" %}?type=contrats');
+        const contratsData = await contratsResponse.json();
+        
+        const contratsCtx = document.getElementById('contratsChart').getContext('2d');
+        new Chart(contratsCtx, {
+            type: 'pie',
+            data: {
+                labels: contratsData.data.map(item => {
+                    const choices = {
+                        'CDI': 'CDI',
+                        'CDD': 'CDD',
+                        'STAGE': 'Stage',
+                        'FREELANCE': 'Freelance',
+                        'TEMPS_PARTIEL': 'Temps Partiel',
+                        'CONSULTING': 'Consulting'
+                    };
+                    return choices[item.type_contrat] || item.type_contrat;
+                }),
+                datasets: [{
+                    data: contratsData.data.map(item => item.count),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+                    borderWidth: 1,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.raw || 0;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors du chargement des données contrats:', error);
+    }
+
+    // Graphique des régions
+    try {
+        const regionsResponse = await fetch('{% url "dashboard:api_charts" %}?type=regions');
+        const regionsData = await regionsResponse.json();
+        
+        const regionsCtx = document.getElementById('regionsChart').getContext('2d');
+        new Chart(regionsCtx, {
+            type: 'bar',
+            data: {
+                labels: regionsData.data.map(item => item.region__nom),
+                datasets: [{
+                    label: 'Offres par région',
+                    data: regionsData.data.map(item => item.count),
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors du chargement des données régions:', error);
+    }
+});
+</script>
+{% endblock %}
