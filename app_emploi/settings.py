@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-24&h5)x1_b=clzf8#$pbo$w4zm$%yt96$nf+&+(@$%v$4mkrx!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'bouba-baba.onrender.com',  # Votre domaine Render
+]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
