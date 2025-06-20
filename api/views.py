@@ -601,6 +601,6 @@ class ImportJobsAPIView(View):
                 'description', 'salaire', 'date_publication', 'niveau_experience',
                 'secteur_activite', 'competences', 'region', 'tagline', 'site_web'
             ],
-            'valid_contract_types': ['CDI', 'CDD', 'STAGE', 'FREELANCE', 'INTERIM'],
+        'valid_contract_types': ['CDI', 'CDD', 'STAGE', 'FREELANCE', 'INTERIM','PRESTATION DE SERVICES'],
             'valid_experience_levels': ['JUNIOR', 'SENIOR', 'EXPERT', 'DEBUTANT', 'CONFIRME']
         })
